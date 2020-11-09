@@ -8,7 +8,7 @@
       "methods": [
         "get"
       ],
-      "route" : "notifications"
+      "route" : "notifications/{*id}"
     },
     {
       "type": "http",

@@ -11,23 +11,24 @@ const tableName = "Notifications";
 module.exports = function (context, req) {
 
     // Check for id parameter
-    // If there is, return the notification with RowKey = id
+    // If there is, return the notification with infected user key = id
     // If not, return all chekin entities
     const id = req.params.id;
     if (id) {
-        // return item with RowKey 'id'
-        tableService.retrieveEntity(tableName, 'Partition', id, function (error, result, response) {
-            if (!error) {
-                // If there were no errors with the request return the database response
-                context.res.status(200).json(response.body);
-            }
-            else {
-                // Else return a 500 server error code with the DB error as the body
-                context.res.status(500).json({error : error});
-            }
-        });
-    }
-    else {
+        
+        const query = new azure.TableQuery()
+            .where('infectedUser_Key eq ?', id);
+
+        tableService.queryEntities(tableName,query, null, function(error, result, response) {
+        if(!error){
+            // If there were no errors with the request return the database response
+            context.res.status(200).json(response.body.value);
+        } else {
+            // Else return a 500 server error code with the DB error as the body
+            context.res.status(500).json({error : error});
+        }
+      });    
+    } else {
         // Query for all entities
         var query = new azure.TableQuery().select('userNotified', 'infectedUser', 'venue', 'Timestamp', 'RowKey');
         tableService.queryEntities(tableName, query, null, function (error, result, response) {

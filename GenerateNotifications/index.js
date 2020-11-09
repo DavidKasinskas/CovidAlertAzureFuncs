@@ -26,12 +26,29 @@ module.exports = function (context, req) {
                                 .select('venue_key', 'date', 'username', 'user_key')
                                 .where('user_key eq ?', id)
                                 .and('date ge ?', fortnightAgo);
+                                
 
         tableService.queryEntities('Checkins',query, null, function(error, result, response) {
             // If the query was successful, proceed with querying the database further
             // Else, return an error message
             if(!error){
                 const userCheckins = (response.body.value); // The database response
+
+                // Insert the test entity before creating notifications
+                let test = {
+                    positive: true,
+                    user_key: id
+                }                
+                test["PartitionKey"] = "Partition";
+                test["RowKey"] = uuidv4();
+
+                tableService.insertEntity('PositiveTests', test, { echoContent: true }, function (error, result, response) {
+                    // Return an error response if there was an error
+                    if (error) {
+                        context.res.status(500).json({ error: error });
+                    }
+                    });
+
                 const batch = new azure.TableBatch(); // Table batch is used to execute multiple operations on the DB at once
                 
                 let notifications = [];
